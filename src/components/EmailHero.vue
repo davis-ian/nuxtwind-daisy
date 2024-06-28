@@ -33,9 +33,9 @@
               Notify Me
             </button>
           </div>
-          <button class="btn btn-primary btn-outline" @click="sendTestEmail">
+          <!-- <button class="btn btn-primary btn-outline" @click="sendTestEmail">
             Test email
-          </button>
+          </button> -->
         </div>
       </div>
     </div>
@@ -44,8 +44,8 @@
 
 <script setup>
 import fireLogo from '@/assets/images/coffin.svg';
-import { sendEmail } from '~/composables/useMailgun';
-const client = useSupabaseClient();
+// import { sendEmail } from '~/composables/useMailgun';
+const supabase = useSupabaseClient();
 const route = useRoute();
 const email = ref('');
 const referrerCode = ref(route.query.ref | null);
@@ -55,15 +55,67 @@ const validateEmail = (email) => {
   return emailRegex.test(email);
 };
 
+const checkExistingUser = async (formEmail) => {
+  console.log(formEmail, 'form email');
+  const { data, error, status } = await supabase
+    .from('waitlist_limited_view')
+    .select('*')
+    .eq();
+
+  console.log(data, 'existing user data');
+
+  return data;
+};
+
+const fetchReferralCount = async (referrerCode) => {
+  try {
+    const { data, error, status } = await supabase
+      .from('waitlist')
+      .select('referral_count')
+      .eq('referral_code', referrerCode)
+      .single();
+
+    if (error && status !== 406) throw error;
+    return data;
+  } catch (error) {
+    console.lerror('Error fetching referral count: ', error.message);
+    throw error;
+  }
+};
+
+const incrementReferralCount = async (referrerCode, currentCount) => {
+  try {
+    const { error } = await supabase
+      .from('waitlist')
+      .update({ referral_count: currentCount + 1 })
+      .eq('referral_code', referrerCode);
+
+    if (error) throw error;
+    console.log('Referral count updated successfully');
+  } catch (error) {
+    console.error('Error updating referral count: ', error.message);
+    throw error;
+  }
+};
+
 const updateReferrerCodeCount = async (referrerCode) => {
-  await client
-    .from('waitlist')
-    .update({ referral_count: data[0].referral_count + 1 })
-    .eq('referral_code', referrerCode);
+  try {
+    const data = await fetchReferralCount(referrerCode);
+
+    if (data) {
+      await incrementReferralCount(referrerCode, data.referral_count);
+    } else {
+      console.log('Referrer code not found');
+    }
+  } catch (error) {
+    console.error('Error updating referrer code count: ', error.message);
+  }
 };
 
 const addEmailToWaitlist = async (formEmail) => {
-  const { error } = await client.from('waitlist').insert({ email: formEmail });
+  const { error } = await supabase
+    .from('waitlist')
+    .insert({ email: formEmail });
 
   if (error) {
     console.log(error, 'supabase error');
@@ -83,27 +135,40 @@ const addEmailToWaitlist = async (formEmail) => {
       autoClose: 3000,
     });
 
-    return error;
+    throw new Error(errorMessage);
   }
 };
 
-const sendTestEmail = async () => {
-  try {
-    const to = 'iandavis6481@gmail.com';
-    const subject = 'Test Email';
-    const text = 'This is a test email from ScrapingDemon';
-    const response = await sendEmail(to, subject, text);
+const sendNewUserEmail = async (newEmail) => {
+  const config = useRuntimeConfig();
+  const toAddress = config.public.EMAIL;
+  const message = {
+    to: toAddress,
+    subject: 'New User @ ScrapingDemon',
+    text: `New signup @ ScrapingDemon! User: ${newEmail} `,
+  };
 
-    console.log('Email success', response);
+  try {
+    const response = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    });
+    const result = await response.json();
+    if (result.status === 'success') {
+      console.log('Email sent successfully!');
+    } else {
+      console.log('Failed to send email: ' + result.message);
+    }
   } catch (error) {
-    console.log('Error sending email from hero: ', error);
+    console.log('An error occurred: ' + error.message);
   }
 };
 
 const captureEmail = async (formEmail) => {
-  const isValidEmail = validateEmail(formEmail);
-
-  if (!isValidEmail) {
+  if (!validateEmail(formEmail)) {
     useNuxtApp().$toast('Invalid Email', {
       theme: 'auto',
       type: 'error',
@@ -112,22 +177,32 @@ const captureEmail = async (formEmail) => {
     return;
   }
 
-  const error = addEmailToWaitlist(formEmail);
-  if (error) {
-    return;
+  try {
+    const existingUser = await checkExistingUser(formEmail);
+
+    if (existingUser) {
+      console.log(existingUser, 'Existing user found');
+      return;
+    }
+
+    // await addEmailToWaitlist(formEmail);
+
+    // useNuxtApp().$toast('Email added to waitlist', {
+    //   theme: 'auto',
+    //   type: 'success',
+    //   autoClose: 3000,
+    // });
+
+    // if (referrerCode.value) {
+    //   await updateReferrerCodeCount(referrerCode.value);
+    // }
+
+    email.value = '';
+
+    // await sendNewUserEmail(formEmail);
+  } catch (error) {
+    console.log('Error capturing email', error);
   }
-
-  if (referrerCode) {
-    updateReferrerCodeCount();
-  }
-
-  email.value = '';
-
-  useNuxtApp().$toast('Email added to waitlist', {
-    theme: 'auto',
-    type: 'success',
-    autoClose: 3000,
-  });
 };
 
 onMounted(() => {

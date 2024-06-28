@@ -1,32 +1,30 @@
-import axios from 'axios';
-import { Buffer } from 'buffer';
+// import axios from 'axios';
+// import { Buffer } from 'buffer';
 
-// eslint-disable-next-line space-before-function-paren
+import * as FormData from 'form-data';
+import { Mailgun } from 'mailgun.js';
+
+const mailgun = new Mailgun(FormData);
+
 export async function sendEmail(to, subject, text) {
-  const apiKey = process.env.MAILGUN_API_KEY;
-  const domain = process.env.MAILGUN_DOMAIN;
-  const url = `https://api.mailgun.new/v3/${domain}/messages`;
+  const config = useRuntimeConfig();
 
-  const auth = 'Basic ' + Buffer.from('api:' + apiKey).toString('base64');
+  const apiKey = config.public.MAILGUN_KEY;
+  const domain = config.public.MAILGUN_DOMAIN;
 
-  const data = new URLSearchParams();
+  const mg = mailgun.client({
+    username: 'api',
+    key: apiKey,
+  });
 
-  data.append('from', `Excited User <mailgun@${domain}>`);
-  data.append('to', to);
-  data.append('subject', subject);
-  data.append('text', text);
-
-  try {
-    const response = await axios.post(url, data, {
-      headers: {
-        Authorization: auth,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-
-    return response.data;
-  } catch (error) {
-    console.log('Error sending email: ', error);
-    throw error;
-  }
+  mg.messages
+    .create(domain, {
+      from: `Excited User <mailgun@${domain}>`,
+      to: ['ian@memoryshare.com'],
+      subject: 'Hello',
+      text: 'Testing some Mailgun awesomeness!',
+      html: '<h1>Testing some Mailgun awesomeness!</h1>',
+    })
+    .then((msg) => console.log(msg)) // logs response data
+    .catch((err) => console.log(err)); // logs any error
 }
