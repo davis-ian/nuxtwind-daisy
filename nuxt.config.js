@@ -12,8 +12,11 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     'nuxt-headlessui',
     'nuxt-gtag',
+    '@nuxtjs/supabase',
   ],
-
+  supabase: {
+    redirect: false,
+  },
   gtag: {
     id: 'G-M1KERXTK1H', // TODO: Add your google analytics 4 tag here
   },
@@ -22,13 +25,19 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      yourEnv: process.env.YOUR_ENV,
+      MAILGUN_KEY: process.env.MAILGUN_KEY,
+      MAILGUN_DOMAIN: process.env.MAILGUN_DOMAIN,
     },
   },
 
   plugins: [
     {
       src: '@/plugins/aos',
+      ssr: false,
+      mode: 'client',
+    },
+    {
+      src: '@/plugins/vue-toastify',
       ssr: false,
       mode: 'client',
     },
@@ -60,7 +69,7 @@ export default defineNuxtConfig({
   },
 
   build: {
-    extend (config, ctx) {
+    extend(config, ctx) {
       config.resolve.symlinks = false;
     },
   },

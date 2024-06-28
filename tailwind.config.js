@@ -3,9 +3,9 @@ module.exports = {
   content: ['./node_modules/flowbite.{js,ts}'],
   theme: {
     extend: {
-      colors: {
-        primary: '#843bd7',
-      },
+      // colors: {
+      //   primary: '#843bd7',
+      // },
       fontFamily: {
         primary: ['Inter'],
       },
@@ -44,7 +44,6 @@ module.exports = {
       'coffee',
       'winter',
     ],
-
   },
   plugins: [
     '@tailwindcss/forms',
