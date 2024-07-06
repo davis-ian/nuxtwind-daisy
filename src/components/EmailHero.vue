@@ -1,5 +1,5 @@
 <template>
-  <div class="hero min-h-screen bg-base-200">
+  <div class="hero bg-base-200">
     <div class="hero-content text-center">
       <div class="max-w-3xl flex flex-col gap-8">
         <h1 class="text-4xl md:text-7xl font-bold text-red-500">
@@ -10,8 +10,8 @@
         <p class="md:text-lg">
           Web scraping and browser automation
           <span class="font-bold">made easy</span>. Automate your reptitive
-          online tasks with ScrapingDemon so you can get back to killing your
-          todo list.
+          online tasks with ScrapingDemon so you can get back to demolishing
+          your todo list.
         </p>
 
         <div>
@@ -26,187 +26,200 @@
               v-model="email"
             />
             <button
+              :disabled="loading"
               class="btn btn-sm md:btn-md btn-primary"
               @click="captureEmail(email)"
               target="_blank"
             >
               Notify Me
             </button>
+            <!-- <button
+              :disabled="loading"
+              class="btn btn-sm md:btn-md btn-primary"
+              @click="getUserPosition('b64f5307-d7a2-459d-aa1c-887f5e5d04df')"
+              target="_blank"
+            >
+              Test position
+            </button> -->
+            <button class="btn" @click="testUser">open modal</button>
           </div>
-          <!-- <button class="btn btn-primary btn-outline" @click="sendTestEmail">
-            Test email
-          </button> -->
         </div>
+
+        <dialog id="user_add_success_modal" class="modal">
+          <div class="modal-box">
+            <h3 class="text-lg font-bold">Hello!</h3>
+            <p class="py-4">Press ESC key or click the button below to close</p>
+            <div class="border-2 border-primary" v-if="user">{{ user }}</div>
+            <div></div>
+            <div class="modal-action">
+              <form method="dialog">
+                <!-- if there is a button in form, it will close the modal -->
+                <button class="btn">Close</button>
+              </form>
+            </div>
+          </div>
+        </dialog>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import fireLogo from '@/assets/images/coffin.svg';
-// import { sendEmail } from '~/composables/useMailgun';
-const supabase = useSupabaseClient();
+import { useUserStore } from '~/stores/userStore';
+import { emailRepository } from '~/utils/emailRepository';
+
 const route = useRoute();
 const email = ref('');
 const referrerCode = ref(route.query.ref | null);
+const user = ref(null);
+const userPosition = ref(null);
+const loading = ref(true);
+
+const testUser = () => {
+  const user = { email: 'test', position: 12 };
+
+  userStore.updateUser(user);
+};
+
+const { showToast } = useToast();
 
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
+const { $api } = useNuxtApp();
+const userRepo = userRepository($api);
+const emailRepo = emailRepository($api);
+
 const checkExistingUser = async (formEmail) => {
-  console.log(formEmail, 'form email');
-  const { data, error, status } = await supabase
-    .from('waitlist_limited_view')
-    .select('*')
-    .eq();
-
-  console.log(data, 'existing user data');
-
-  return data;
-};
-
-const fetchReferralCount = async (referrerCode) => {
   try {
-    const { data, error, status } = await supabase
-      .from('waitlist')
-      .select('referral_count')
-      .eq('referral_code', referrerCode)
-      .single();
+    const response = await userRepo.checkExisting(formEmail);
 
-    if (error && status !== 406) throw error;
-    return data;
+    const result = response.existingUser;
+
+    return result;
   } catch (error) {
-    console.lerror('Error fetching referral count: ', error.message);
-    throw error;
+    console.log(error, 'error loggeed');
+    throw new Error(
+      error.response.data.message || 'Error checking existing user'
+    );
   }
 };
 
-const incrementReferralCount = async (referrerCode, currentCount) => {
+const getUserPosition = async (referralCode) => {
   try {
-    const { error } = await supabase
-      .from('waitlist')
-      .update({ referral_count: currentCount + 1 })
-      .eq('referral_code', referrerCode);
+    const response = await userRepo.getPosition(referralCode);
 
-    if (error) throw error;
-    console.log('Referral count updated successfully');
+    const result = response;
+    return result;
+  } catch (error) {
+    console.log(error);
+    throw new Error('Error getting user position');
+  }
+};
+
+// const fetchReferralCount = async (referrerCode) => {
+//   try {
+//     const response = await userRepo.fetchReferralCount(referrerCode);
+
+//     console.log(response.data, 'referral count response');
+//     return response.data;
+//   } catch (error) {
+//     console.lerror('Error fetching referral count: ', error.message);
+//     throw error;
+//   }
+// };
+
+const incrementReferralCount = async (referrerCode) => {
+  try {
+    const response = await userRepo.incrementReferralCount(referrerCode);
+    console.log('inc response', response.data);
+    return response.data;
   } catch (error) {
     console.error('Error updating referral count: ', error.message);
     throw error;
   }
 };
 
-const updateReferrerCodeCount = async (referrerCode) => {
-  try {
-    const data = await fetchReferralCount(referrerCode);
-
-    if (data) {
-      await incrementReferralCount(referrerCode, data.referral_count);
-    } else {
-      console.log('Referrer code not found');
-    }
-  } catch (error) {
-    console.error('Error updating referrer code count: ', error.message);
-  }
-};
-
 const addEmailToWaitlist = async (formEmail) => {
-  const { error } = await supabase
-    .from('waitlist')
-    .insert({ email: formEmail });
-
-  if (error) {
-    console.log(error, 'supabase error');
-
-    let errorMessage = 'Error occured, unable to add email';
-
-    if (
-      error.message ===
-      'duplicate key value violates unique constraint "waitlist_email_key"'
-    ) {
-      errorMessage = 'Email already added';
-    }
-
-    useNuxtApp().$toast(errorMessage, {
-      theme: 'auto',
-      type: 'error',
-      autoClose: 3000,
-    });
-
-    throw new Error(errorMessage);
+  try {
+    const response = await userRepo.addEmail(formEmail);
+    const result = response.data;
+    console.log(result, 'email added');
+    showToast('Email added to waitlist', { type: 'success' });
+    return result;
+  } catch (error) {
+    console.log(error, 'error adding email test');
+    throw new Error(error.response.data || 'Error adding email');
   }
 };
 
 const sendNewUserEmail = async (newEmail) => {
-  const config = useRuntimeConfig();
-  const toAddress = config.public.EMAIL;
-  const message = {
-    to: toAddress,
-    subject: 'New User @ ScrapingDemon',
-    text: `New signup @ ScrapingDemon! User: ${newEmail} `,
-  };
-
   try {
-    const response = await fetch('/api/send-email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(message),
-    });
-    const result = await response.json();
-    if (result.status === 'success') {
-      console.log('Email sent successfully!');
-    } else {
-      console.log('Failed to send email: ' + result.message);
-    }
+    const response = await emailRepo.sendNewUserAlert(newEmail);
+    const result = response;
+    console.log(result, 'email result');
+    return result;
   } catch (error) {
-    console.log('An error occurred: ' + error.message);
+    console.log(error, 'new user alert error');
+    throw new Error(error.response.data || 'Error sending new email alertl');
   }
 };
 
+const userStore = useUserStore();
+
 const captureEmail = async (formEmail) => {
   if (!validateEmail(formEmail)) {
-    useNuxtApp().$toast('Invalid Email', {
-      theme: 'auto',
-      type: 'error',
-      autoClose: '3000',
-    });
+    showToast('Invalid Email', { type: 'error' });
     return;
   }
 
+  loading.value = true;
   try {
     const existingUser = await checkExistingUser(formEmail);
 
     if (existingUser) {
-      console.log(existingUser, 'Existing user found');
+      showToast('Email already in waitlist', { type: 'error' });
       return;
     }
 
-    // await addEmailToWaitlist(formEmail);
+    const newUser = await addEmailToWaitlist(formEmail);
+    console.log(newUser, 'new User');
 
-    // useNuxtApp().$toast('Email added to waitlist', {
-    //   theme: 'auto',
-    //   type: 'success',
-    //   autoClose: 3000,
-    // });
+    userPosition.value = await getUserPosition(newUser.referral_code);
+    user.value = { ...newUser, position: userPosition.value };
+    userStore.updateUser(user.value);
 
-    // if (referrerCode.value) {
-    //   await updateReferrerCodeCount(referrerCode.value);
-    // }
+    if (referrerCode.value) {
+      await incrementReferralCount(referrerCode.value);
+    }
 
-    email.value = '';
+    await navigateTo('/success');
 
     // await sendNewUserEmail(formEmail);
   } catch (error) {
     console.log('Error capturing email', error);
   }
+  loading.value = false;
 };
 
+const showSuccessModal = () => {
+  user_add_success_modal.showModal();
+};
+
+// const hideSuccessModal = () => {
+//   user_add_success_modal.close();
+// };
+
 onMounted(() => {
-  console.log(referrerCode.value);
+  loading.value = false;
+  console.log(route.query.ref, 'route');
+  if (route.query.ref) {
+    referrerCode.value = route.query.ref;
+  }
+
+  console.log(referrerCode.value, 'referrer code  val');
 });
 </script>
 

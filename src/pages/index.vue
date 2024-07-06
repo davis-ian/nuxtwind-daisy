@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <LandingDefault />
+  <div class="flex-grow flex">
+    <LandingDefault class="flex-grow" />
   </div>
 </template>
 

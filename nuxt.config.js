@@ -10,38 +10,37 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxtjs/tailwindcss',
-    'nuxt-headlessui',
+    '@pinia/nuxt',
     'nuxt-gtag',
-    '@nuxtjs/supabase',
+    '@nuxtjs/supabase'
   ],
   supabase: {
-    redirect: false,
+    redirect: false
   },
   gtag: {
-    id: 'G-M1KERXTK1H', // TODO: Add your google analytics 4 tag here
+    id: 'G-M1KERXTK1H' // TODO: Add your google analytics 4 tag here
   },
 
   srcDir: './src',
 
   runtimeConfig: {
-    public: {
-      MAILGUN_KEY: process.env.MAILGUN_KEY,
-      MAILGUN_DOMAIN: process.env.MAILGUN_DOMAIN,
-      EMAIL: process.env.EMAIL,
-    },
+    public: {},
+    MAILGUN_KEY: process.env.MAILGUN_KEY,
+    MAILGUN_DOMAIN: process.env.MAILGUN_DOMAIN,
+    EMAIL: process.env.EMAIL
   },
 
   plugins: [
     {
       src: '@/plugins/aos',
       ssr: false,
-      mode: 'client',
+      mode: 'client'
     },
     {
       src: '@/plugins/vue-toastify',
       ssr: false,
-      mode: 'client',
-    },
+      mode: 'client'
+    }
   ],
 
   app: {
@@ -49,10 +48,10 @@ export default defineNuxtConfig({
       link: [
         {
           rel: 'stylesheet',
-          href: 'https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css',
-        },
-      ],
-    },
+          href: 'https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css'
+        }
+      ]
+    }
   },
 
   tailwindcss: {
@@ -62,17 +61,17 @@ export default defineNuxtConfig({
     exposeLevel: 2,
     config: {},
     injectPosition: 'first',
-    viewer: true,
+    viewer: true
   },
 
   headlessui: {
-    prefix: 'Headless',
+    prefix: 'Headless'
   },
 
   build: {
     extend(config, ctx) {
       config.resolve.symlinks = false;
-    },
+    }
   },
 
   image: {
@@ -85,11 +84,11 @@ export default defineNuxtConfig({
       xl: 1280,
       xxl: 1536,
       '2xl': 1536,
-      '3xl': 1920,
-    },
+      '3xl': 1920
+    }
   },
 
   devtools: {
-    enabled: true,
-  },
+    enabled: true
+  }
 });

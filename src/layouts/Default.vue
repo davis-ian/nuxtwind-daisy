@@ -1,6 +1,6 @@
 <template>
-  <div :data-theme="theme">
-    <div class="navbar fixed bg-base-100 z-40 shadow-sm">
+  <div class="flex flex-col min-h-screen" :data-theme="theme">
+    <div style="top: 0" class="navbar sticky bg-base-100 z-40 shadow-sm">
       <div class="navbar-start">
         <a class="btn btn-ghost md:text-xl">
           <img style="aspect-ratio: 1" class="max-w-10" :src="fireLogo" />
@@ -12,7 +12,10 @@
       </div>
       <div class="navbar-end"></div>
     </div>
-    <slot />
+
+    <div class="flex-grow flex flex-col">
+      <slot />
+    </div>
     <footer class="footer footer-center p-10 bg-base-50">
       <div>
         <h1 class="text-2xl md:text-3xl font-bold">ScrapingDemon</h1>

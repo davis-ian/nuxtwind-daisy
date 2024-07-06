@@ -32,16 +32,17 @@
     "eslint-webpack-plugin": "^4.0.1",
     "nuxt": "^3.11.2",
     "nuxt-gtag": "^1.1.2",
-    "nuxt-headlessui": "^1.1.5",
     "rimraf": "^5.0.5"
   },
   "dependencies": {
+    "@pinia/nuxt": "^0.5.1",
     "@tailwindcss/typography": "^0.5.10",
     "aos": "^3.0.0-beta.6",
     "axios": "^1.7.2",
     "daisyui": "^4.12.2",
     "form-data": "^4.0.0",
     "mailgun.js": "^10.2.1",
+    "pinia": "^2.1.7",
     "postcss-custom-properties": "^13.3.4",
     "vue3-toastify": "^0.2.1"
   },
@@ -53,5 +54,8 @@
   "bugs": {
     "url": "https://github.com/ossphilippines/nuxtwind-daisy/issues"
   },
-  "homepage": "https://github.com/ossphilippines/nuxtwind-daisy#readme"
+  "homepage": "https://github.com/ossphilippines/nuxtwind-daisy#readme",
+  "overrides": {
+    "vue": "latest"
+  }
 }

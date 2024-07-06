@@ -28,14 +28,12 @@ module.exports = {
     // 'plugin:vue/vue3-recommended', // Priority C: Recommended (Minimizing Arbitrary Choices and Cognitive Overhead)
 
     'standard'
-    
   ],
 
   plugins: [
     // https://eslint.vuejs.org/user-guide/#why-doesn-t-it-work-on-vue-files
     // required to lint *.vue files
-    'vue',
-    
+    'vue'
   ],
 
   globals: {
@@ -66,17 +64,18 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
 
     // custom
-    'semi': [2, 'always'],
-    'space-before-function-paren': [2, 'always'],
+    semi: [2, 'always'],
+    //'space-before-function-paren': [2, 'always'],
+    'space-before-function-paren': 'off',
     'keyword-spacing': [2, { before: true, after: true }],
     'space-before-blocks': [2, 'always'],
-    'comma-dangle': [2, 'always-multiline'],
+    //'comma-dangle': [2, 'always-multiline'],
     'no-console': 'off',
     'no-multi-str': 'off',
-    'curly': 1,
+    curly: 1,
     'no-undef': 'off',
 
     // plugins
     'vue/multi-word-component-names': 'off'
   }
-}
+};
