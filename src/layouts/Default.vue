@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col min-h-screen" :data-theme="theme">
-    <div style="top: 0" class="navbar sticky bg-base-100 z-40 shadow-sm">
+    <div style="top: 0" class="navbar sticky bg-base-100 z-40">
       <div class="navbar-start">
         <a class="btn btn-ghost md:text-xl">
           <img style="aspect-ratio: 1" class="max-w-10" :src="fireLogo" />

@@ -1,11 +1,10 @@
 <template>
-  <div class="hero bg-base-200">
+  <div class="hero">
     <div class="hero-content text-center">
       <div class="max-w-3xl flex flex-col gap-8">
         <h1 class="text-4xl md:text-7xl font-bold text-red-500">
           Scrape. Automate. Dominate.
         </h1>
-        <!-- <img class="border-2 border-primary max-w-48" :src="fireLogo" /> -->
 
         <p class="md:text-lg">
           Web scraping and browser automation
@@ -33,32 +32,8 @@
             >
               Notify Me
             </button>
-            <!-- <button
-              :disabled="loading"
-              class="btn btn-sm md:btn-md btn-primary"
-              @click="getUserPosition('b64f5307-d7a2-459d-aa1c-887f5e5d04df')"
-              target="_blank"
-            >
-              Test position
-            </button> -->
-            <button class="btn" @click="testUser">open modal</button>
           </div>
         </div>
-
-        <dialog id="user_add_success_modal" class="modal">
-          <div class="modal-box">
-            <h3 class="text-lg font-bold">Hello!</h3>
-            <p class="py-4">Press ESC key or click the button below to close</p>
-            <div class="border-2 border-primary" v-if="user">{{ user }}</div>
-            <div></div>
-            <div class="modal-action">
-              <form method="dialog">
-                <!-- if there is a button in form, it will close the modal -->
-                <button class="btn">Close</button>
-              </form>
-            </div>
-          </div>
-        </dialog>
       </div>
     </div>
   </div>
@@ -74,12 +49,6 @@ const referrerCode = ref(route.query.ref | null);
 const user = ref(null);
 const userPosition = ref(null);
 const loading = ref(true);
-
-const testUser = () => {
-  const user = { email: 'test', position: 12 };
-
-  userStore.updateUser(user);
-};
 
 const { showToast } = useToast();
 
@@ -185,7 +154,6 @@ const captureEmail = async (formEmail) => {
     }
 
     const newUser = await addEmailToWaitlist(formEmail);
-    console.log(newUser, 'new User');
 
     userPosition.value = await getUserPosition(newUser.referral_code);
     user.value = { ...newUser, position: userPosition.value };
@@ -197,29 +165,19 @@ const captureEmail = async (formEmail) => {
 
     await navigateTo('/success');
 
-    // await sendNewUserEmail(formEmail);
+    await sendNewUserEmail(formEmail);
   } catch (error) {
     console.log('Error capturing email', error);
   }
   loading.value = false;
 };
 
-const showSuccessModal = () => {
-  user_add_success_modal.showModal();
-};
-
-// const hideSuccessModal = () => {
-//   user_add_success_modal.close();
-// };
-
 onMounted(() => {
   loading.value = false;
-  console.log(route.query.ref, 'route');
+
   if (route.query.ref) {
     referrerCode.value = route.query.ref;
   }
-
-  console.log(referrerCode.value, 'referrer code  val');
 });
 </script>
 

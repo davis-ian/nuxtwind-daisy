@@ -24,7 +24,9 @@ export default defineNuxtConfig({
   srcDir: './src',
 
   runtimeConfig: {
-    public: {},
+    public: {
+      APP_FRONT: process.env.APP_FRONT
+    },
     MAILGUN_KEY: process.env.MAILGUN_KEY,
     MAILGUN_DOMAIN: process.env.MAILGUN_DOMAIN,
     EMAIL: process.env.EMAIL

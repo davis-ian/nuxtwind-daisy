@@ -6,7 +6,7 @@
 import ogBanner from '../assets/images/nuxtwind-daisy-og-banner.jpg';
 
 definePageMeta({
-  layout: 'default',
+  layout: 'default'
 });
 useHead({
   title: 'ScrapingDemon',
@@ -18,8 +18,8 @@ useHead({
       hid: 'og:image',
       name: 'og:image',
       property: 'og:image',
-      content: ogBanner,
-    },
-  ],
+      content: ogBanner
+    }
+  ]
 });
 </script>
