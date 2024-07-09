@@ -124,9 +124,24 @@ const addEmailToWaitlist = async (formEmail) => {
   }
 };
 
-const sendNewUserEmail = async (newEmail) => {
+const sendNewUserAlert = async (newEmail) => {
   try {
     const response = await emailRepo.sendNewUserAlert(newEmail);
+    const result = response;
+    console.log(result, 'email result');
+    return result;
+  } catch (error) {
+    console.log(error, 'new user alert error');
+    throw new Error(error.response.data || 'Error sending new email alertl');
+  }
+};
+
+const sendConfirmationEmail = async (newEmail, userReferralCode) => {
+  try {
+    const response = await emailRepo.sendConfirmationEmail(
+      newEmail,
+      userReferralCode
+    );
     const result = response;
     console.log(result, 'email result');
     return result;
@@ -156,16 +171,18 @@ const captureEmail = async (formEmail) => {
     const newUser = await addEmailToWaitlist(formEmail);
 
     userPosition.value = await getUserPosition(newUser.referral_code);
-    user.value = { ...newUser, position: userPosition.value };
+    user.value = { ...newUser, position: userPosition.value.position };
     userStore.updateUser(user.value);
 
     if (referrerCode.value) {
       await incrementReferralCount(referrerCode.value);
     }
 
-    await navigateTo('/success');
+    console.log(user, 'USER');
+    await sendConfirmationEmail(user.value.email, user.value.referral_code);
+    await sendNewUserAlert(formEmail);
 
-    await sendNewUserEmail(formEmail);
+    await navigateTo('/success');
   } catch (error) {
     console.log('Error capturing email', error);
   }

@@ -21,8 +21,15 @@ export const userRepository = (fetch) => ({
       method: 'POST'
     });
   },
+  // Gets calculated user position from standard supabase query
   async getPosition(referralCode) {
     return fetch('users/position/' + referralCode, {
+      method: 'GET'
+    });
+  },
+  // Gets calculated user position using db function
+  async getPositionRpc(referralCode) {
+    return fetch('users/position/rpc-' + referralCode, {
       method: 'GET'
     });
   }

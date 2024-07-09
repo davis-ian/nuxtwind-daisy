@@ -20,7 +20,7 @@ const getUserPosition = async (referralCode) => {
   try {
     const response = await userRepo.getPosition(referralCode);
 
-    const result = response;
+    const result = response.position;
     return result;
   } catch (error) {
     console.log(error);
